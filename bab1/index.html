@@ -94,7 +94,7 @@ body.noid .id{display:none}.tg i .id{color:#fff;font-size:11px;margin:0}
 <script>
 const A=document.getElementById('app'),SC=document.getElementById('sc');
 let stars=0,done={},ms={},cur=0,flt='',me=null,et=null;
-const MM=[8,8,8,8,8,8],MN=['M1 Pilar','M2 Pecah & Pola','M3 Abstraksi & Algoritma','M4 Manfaat','M5 Masalah','M6 Pecahkan'],KLS=['Edelweiss','Heliconia','Magnolia','Oleander'],MAX=48,KEY='bab1_results';let mem=[];
+let MM=[8,8,8,8,8,8],MN=['M1 Pilar','M2 Pecah & Pola','M3 Abstraksi & Algoritma','M4 Manfaat','M5 Masalah','M6 Pecahkan'],KLS=['Edelweiss','Heliconia','Magnolia','Oleander'],MAX=48,KEY='bab1_results';let mem=[];
 /* Alamat Google Apps Script (Web app, berakhiran /exec). Kosong = pengiriman ke Google Sheet mati. */
 const SYNC=(()=>{try{const s=new URLSearchParams(location.search).get('s')||'';return /^https:\/\/script\.google\.com\/[^\s"'<>]*\/exec$/.test(s)?s:''}catch(e){return ''}})();
 const BEBAS=!SYNC;/* tanpa ?s=alamat_skrip: mode bebas, hasil hanya di perangkat ini */
@@ -146,12 +146,13 @@ function save(){if(!me)return;const a=load(),r={id:me.id,nama:me.nama,kelas:me.k
 
 /* awal */
 /* daftar kelas dan siswa dari Google Sheet (tab "Siswa") */
-let ROS=null;const RK='kka_roster';
+let ROS=null;const RK='kka_roster';let SOAL=null;const SK='kka_soal';
 async function loadRos(){
  if(SYNC){try{const c=new AbortController(),t=setTimeout(()=>c.abort(),7000);
   const r=await fetch(SYNC+(SYNC.indexOf('?')<0?'?':'&')+'aksi=siswa',{signal:c.signal});clearTimeout(t);
-  const j=await r.json();if(j&&j.kelas&&Object.keys(j.kelas).length){ROS=j.kelas;try{localStorage.setItem(RK,JSON.stringify(ROS))}catch(e){}}}catch(e){}}
+  const j=await r.json();if(j&&Array.isArray(j.soal)){SOAL=j.soal;try{localStorage.setItem(SK,JSON.stringify(SOAL))}catch(e){}}if(j&&j.kelas&&Object.keys(j.kelas).length){ROS=j.kelas;try{localStorage.setItem(RK,JSON.stringify(ROS))}catch(e){}}}catch(e){}}
  if(!ROS){try{ROS=JSON.parse(localStorage.getItem(RK))}catch(e){}}
+ if(!BEBAS){if(!SOAL){try{SOAL=JSON.parse(localStorage.getItem(SK))}catch(e){}}pakaiSoal(SOAL)}
  return ROS}
 const kls=()=>ROS?Object.keys(ROS):KLS;
 function start(){
@@ -237,6 +238,21 @@ const MS=[
 'Kamu sudah bisa memecahkan masalah dengan langkah-langkah!']
 ];
 
+/* soal dari tab "Soal" di Sheet (opsional). Kosong atau tidak valid = soal bawaan. */
+const BABNO=1,KUSTOM=[],MS0=MS.map(x=>x[5]),MM0=MM.slice();
+function pakaiSoal(rows){
+ for(let m=0;m<6;m++){MS[m][5]=MS0[m];MM[m]=MM0[m]}
+ if(rows&&rows.length){
+  for(let m=1;m<=6;m++){if(KUSTOM.indexOf(m)>=0)continue;
+   const its=[];
+   rows.forEach(r=>{if(+r[0]!==BABNO||+r[1]!==m)return;
+    const jn=String(r[2]||'').trim().toLowerCase(),q=String(r[3]||'').trim(),e=String(r[4]||'').trim(),w=String(r[5]||'').trim();
+    const c=r.slice(6,12).map(x=>String(x||'').trim());
+    if(!q||!c[0])return;const cc=c.filter(Boolean);if(cc.length<2)return;
+    if(jn==='urut')its.push({q:esc(q),e:esc(e),s:cc.map(esc)});
+    else if(jn==='pilih')its.push({q:esc(q),e:esc(e),o:cc.map(esc),w:esc(w)})});
+   if(its.length){const k=its.slice(0,12);MS[m-1][5]=k;MM[m-1]=k.length+2}}}
+ MAX=MM.reduce((a,b)=>a+b,0)}
 /* ===== mesin misi ===== */
 function run(i,ti,intro,learn,items,after){
  A.innerHTML=`${hdr(ti)}<h2>${ti}</h2><p class="intro">${intro}</p><div class="learn"></div><button class="go" id="st">Mulai!</button>`;

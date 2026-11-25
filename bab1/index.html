@@ -246,11 +246,11 @@ function pakaiSoal(rows){
   for(let m=1;m<=6;m++){if(KUSTOM.indexOf(m)>=0)continue;
    const its=[];
    rows.forEach(r=>{if(+r[0]!==BABNO||+r[1]!==m)return;
-    const jn=String(r[2]||'').trim().toLowerCase(),q=String(r[3]||'').trim(),e=String(r[4]||'').trim(),w=String(r[5]||'').trim();
-    const c=r.slice(6,12).map(x=>String(x||'').trim());
+    const jn=String(r[2]||'').trim().toLowerCase(),q=String(r[3]||'').trim(),e=String(r[4]||'').trim(),w=String(r[5]||'').trim(),x=String(r[12]||'').trim();
+    const c=r.slice(6,12).map(v=>String(v||'').trim());
     if(!q||!c[0])return;const cc=c.filter(Boolean);if(cc.length<2)return;
     if(jn==='urut')its.push({q:esc(q),e:esc(e),s:cc.map(esc)});
-    else if(jn==='pilih')its.push({q:esc(q),e:esc(e),o:cc.map(esc),w:esc(w)})});
+    else if(jn==='pilih'){const it={q:esc(q),e:esc(e),o:cc.map(esc),w:esc(w)};if(x)it.ex=x.split(/\r?\n/).map(esc).join('<br>');its.push(it)}});
    if(its.length){const k=its.slice(0,12);MS[m-1][5]=k;MM[m-1]=k.length+2}}}
  MAX=MM.reduce((a,b)=>a+b,0)}
 /* ===== mesin misi ===== */
@@ -262,7 +262,7 @@ function run(i,ti,intro,learn,items,after){
   const q=()=>{
    if(r>=items.length)return finish(i,after);
    const it=items[r],lock={v:0};
-   const T=`${hdr(ti+' ('+(r+1)+'/'+items.length+')')}<div class="qe">${it.e||''}</div><h2>${it.q}</h2>`;
+   const T=`${hdr(ti+' ('+(r+1)+'/'+items.length+')')}<div class="qe">${it.e||''}</div><h2>${it.q}</h2>${it.ex?`<div class="sent" style="text-align:left">📚 <b>Data latih robot</b><br>${it.ex}</div>`:''}`;
    if(it.s){let n=0;
     A.innerHTML=T+'<ol class="sl"></ol><div class="opts"></div><p id="msg" class="msg"></p>';
     const sl=A.querySelector('.sl'),o=A.querySelector('.opts');
